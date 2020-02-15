@@ -1,8 +1,52 @@
 var Book = require('../models/book');
+var Author = require('../models/author');
+var Genre = require('../models/genre');
+var BookInstance = require('../models/bookinstance');
 
-exports.index = function(req, res) {
-    res.send('NOT IMPLEMENTED: Site Home Page');
+// Creating the connection is key!
+    var mongoose = require('mongoose');
+
+    var mongoDB = 'mongodb+srv://malhar197:Mvd5547@cluster0-t3sxq.mongodb.net/local_library?retryWrites=true&w=majority';
+    mongoose.connect(mongoDB, { useNewUrlParser: true });
+
+    var db = mongoose.connection;
+    db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+
+var async = require('async');
+
+exports.index = function(req, res) {   
+    
+    async.parallel({
+        book_count: function(callback) {
+            Book.countDocuments({}, callback); // Pass an empty object as match condition to find all documents of this collection
+        },
+        book_instance_count: function(callback) {
+            BookInstance.countDocuments({}, callback);
+        },
+        book_instance_available_count: function(callback) {
+            BookInstance.countDocuments({status:'Available'}, callback);
+        },
+        author_count: function(callback) {
+            Author.countDocuments({}, callback);
+        },
+        genre_count: function(callback) {
+            Genre.countDocuments({}, callback);
+        }
+    }, function(err, results) {
+        res.render('index', { title: 'Local Library Home', error: err, data: results });
+    });
 };
+
+
+
+
+
+// var Book = require('../models/book');
+
+// exports.index = function(req, res) {
+//     res.send('NOT IMPLEMENTED: Site Home Page');
+// };
 
 // Display list of all books.
 exports.book_list = function(req, res) {
